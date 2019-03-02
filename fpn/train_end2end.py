@@ -109,9 +109,14 @@ def train_net(args, ctx, pretrained, epoch, prefix, begin_epoch, end_epoch, lr, 
         print('continue training from ', begin_epoch)
         arg_params, aux_params = load_param(prefix, begin_epoch, convert=True)
     else:
-        arg_params = {}
-        aux_params = {}
         arg_params, aux_params = load_param(pretrained, epoch, convert=True)
+        single_shape = arg_params['conv1_weight'].shape
+        temp_conv1_weight = nd.empty((single_shape[0],single_shape[1]*config.CROP_NUM*config.CROP_NUM,single_shape[2],single_shape[3]),dtype = arg_params['conv1_weight'].dtype)
+        for i in range(config.CROP_NUM*config.CROP_NUM):
+            temp_conv1_weight[:,i*single_shape[1]:(i+1)*single_shape[1],:,:] = arg_params['conv1_weight'][:,:,:,:]
+        del arg_params['conv1_weight']
+        arg_params['conv1_weight'] = temp_conv1_weight
+
         sym_instance.init_weight(config, arg_params, aux_params)
 
     # check parameter shapes
