@@ -43,6 +43,7 @@ sys.path.insert(0, mxnet_path)
 import shutil
 import numpy as np
 import mxnet as mx
+from mxnet import nd
 
 from symbols import *
 from core.loader import PyramidAnchorIterator
