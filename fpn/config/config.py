@@ -23,6 +23,7 @@ config.symbol = ''
 config.gpus = ''
 config.CLASS_AGNOSTIC = True
 config.SCALES = [(600, 1000)]  # first is scale (the shorter side); second is max size
+config.CROP_NUM = 3
 config.TEST_SCALES = [(600, 1000)]
 # default training
 config.default = edict()
