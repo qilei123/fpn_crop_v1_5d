@@ -171,7 +171,7 @@ def get_crop_image(roidb, config):
         max_size = config.SCALES[scale_ind][1]
         croped_im = crop_image(im,config.CROP_NUM)
         im, im_scale = resize_crop(croped_im, target_size, max_size, stride=config.network.IMAGE_STRIDE)
-        im_tensor = transform(im, config.network.PIXEL_MEANS)
+        im_tensor = transform_crop(im, config.network.PIXEL_MEANS)
         processed_ims.append(im_tensor)
         im_info = [im_tensor.shape[2], im_tensor.shape[3], im_scale]
         remap_boxes(roi_rec,config.CROP_NUM,ori_shape)
@@ -260,6 +260,21 @@ def resize_crop(im, target_size, max_size, stride=0, interpolation = cv2.INTER_L
         padded_im[:im.shape[0], :im.shape[1], :] = im
         del im
         return padded_im, im_scale
+
+def transform_crop(im, pixel_means):
+    """
+    transform into mxnet tensor
+    substract pixel size and transform to correct format
+    :param im: [height, width, channel] in BGR
+    :param pixel_means: [B, G, R pixel means]
+    :return: [batch, channel, height, width]
+    """
+    channel = im.shape[2]
+    im_tensor = np.zeros((1, channel, im.shape[0], im.shape[1]))
+    for i in range(channel/3):
+        for j in range(3):
+            im_tensor[0, i*3+j, :, :] = im[:, :,i*3+ 2 - j] - pixel_means[2 - j]
+    return im_tensor
 
 def resize(im, target_size, max_size, stride=0, interpolation = cv2.INTER_LINEAR):
     """
