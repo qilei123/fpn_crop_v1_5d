@@ -180,7 +180,7 @@ def get_crop_image(roidb, config):
         new_rec['im_info'] = im_info
         processed_roidb.append(new_rec)
     print "processed_ims.shape:"
-    print processed_ims.shape
+    print processed_ims[0].shape
     return processed_ims, processed_roidb
 
 def get_segmentation_image(segdb, config):
