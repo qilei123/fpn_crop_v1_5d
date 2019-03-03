@@ -11,7 +11,7 @@ import cv2
 import random
 from PIL import Image
 from bbox.bbox_transform import clip_boxes
-
+from math import floor
 
 # TODO: This two functions should be merged with individual data loader
 def get_image(roidb, config):
@@ -46,6 +46,144 @@ def get_image(roidb, config):
         processed_roidb.append(new_rec)
     return processed_ims, processed_roidb
 
+def compute_iou(rec1, rec2):
+	"""
+	computing IoU
+	:param rec1: (y0, x0, y1, x1), which reflects
+			(top, left, bottom, right)
+	:param rec2: (y0, x0, y1, x1)
+	:return: scala value of IoU
+	"""
+	# computing area of each rectangles
+	S_rec1 = (rec1[2] - rec1[0]) * (rec1[3] - rec1[1])
+	S_rec2 = (rec2[2] - rec2[0]) * (rec2[3] - rec2[1])
+
+	# computing the sum_area
+	sum_area = S_rec1 + S_rec2
+
+	# find the each edge of intersect rectangle
+	left_line = max(rec1[1], rec2[1])
+	right_line = min(rec1[3], rec2[3])
+	top_line = max(rec1[0], rec2[0])
+	bottom_line = min(rec1[2], rec2[2])
+	# judge if there is an intersect
+	if left_line >= right_line or top_line >= bottom_line:
+		return 0
+	else:
+
+		intersect = float(right_line - left_line) * float(bottom_line - top_line)
+		#return intersect / float(sum_area - intersect)
+		return intersect / float(S_rec1)
+
+def crop_image(img,n):
+    height, width, channel= img.shape[:]
+    grid_h = floor(height*1.0/(n-1))
+    grid_w = floor(width*1.0/(n-1))
+    step_h = floor(height*float(n-2)/float(pow((n-1),2)))
+    step_w = floor(width*float(n-2)/float(pow((n-1),2)))
+    croped_image = np.zeros((int(grid_h),int(grid_w),pow(n,2)*channel),dtype=int)
+    for i in range(n):
+        for j in range(n):
+            rect = [i*step_h,j*step_w,i*step_h+grid_h,j*step_w+grid_w]
+            #print rect
+            croped_img = img[int(rect[0]):int(rect[2]),int(rect[1]):int(rect[3]),:]
+            croped_image[:,:,(i*n+j)*channel:(i*n+j+1)*channel] = croped_img[:,:,:]
+    return croped_image
+
+def filtBox(croped_rect,box):
+	t_box = box[:]
+
+	if t_box[0]<croped_rect[0]:
+		t_box[0] = croped_rect[0]
+	if t_box[1]<croped_rect[1]:
+		t_box[1] = croped_rect[1]
+	if t_box[2]>croped_rect[2]:
+		t_box[2] = croped_rect[2]
+	if t_box[3]>croped_rect[3]:
+		t_box[3] = croped_rect[3]
+	
+	t_box[0] = t_box[0]-croped_rect[0]
+	t_box[2] = t_box[2]-croped_rect[0]
+	t_box[1] = t_box[1]-croped_rect[1]
+	t_box[3] = t_box[3]-croped_rect[1]
+
+	return t_box
+
+def remap_boxes(temp_new_rec,n,im_size):
+    #box [x1, y1, x2, y2]
+    boxes = []
+    box_channels = []
+    gt_classes =  []
+    gt_overlaps = []
+    max_classes = []
+    max_overlaps = []
+    height = im_size[0]
+    width = im_size[1]
+    grid_h = floor(height*1.0/(n-1))
+    grid_w = floor(width*1.0/(n-1))
+    step_h = floor(height*float(n-2)/float(pow((n-1),2)))
+    step_w = floor(width*float(n-2)/float(pow((n-1),2)))
+    for i in range(temp_new_rec['boxes'].shape[0]):
+        for j in range(n):
+            for k in range(n):
+                region = [step_w*k,step_h*j,step_w*k+grid_w,step_h*j+grid_h]
+                box = temp_new_rec['boxes'][i].tolist()
+                iou = compute_iou(box,region)
+                if iou>0.8:
+                    t_box = filtBox(region,box)
+                    boxes.append(t_box)
+                    box_channels.append(i*n+k)
+                    gt_classes.append(temp_new_rec['gt_classes'][i])
+                    gt_overlaps.append(temp_new_rec['gt_overlaps'][i].tolist())
+                    max_classes.append(temp_new_rec['max_classes'][i])
+                    max_overlaps.append(temp_new_rec['max_overlaps'][i])
+                    
+    temp_new_rec['boxes'] = np.asarray(boxes,dtype=np.uint16)
+    temp_new_rec['box_channels'] = np.asarray(box_channels,dtype=np.uint16)
+    temp_new_rec['gt_classes'] = np.asarray(gt_classes)
+    temp_new_rec['gt_overlaps'] = np.asarray(gt_overlaps,dtype=np.float32)
+    temp_new_rec['max_classes'] = np.asarray(max_classes)
+    temp_new_rec['max_overlaps'] = np.asarray(max_overlaps)
+    return
+
+def get_crop_image(roidb, config):
+    """
+    preprocess image and return processed roidb
+    :param roidb: a list of roidb
+    :return: list of img as in mxnet format
+    roidb add new item['im_info']
+    0 --- x (width, second dim of im)
+    |
+    y (height, first dim of im)
+    """
+    num_images = len(roidb)
+    processed_ims = []
+    processed_roidb = []
+    for i in range(num_images):
+        roi_rec = roidb[i]
+        assert os.path.exists(roi_rec['image']), '%s does not exist'.format(roi_rec['image'])
+        im = cv2.imread(roi_rec['image'], cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION)
+        ori_shape = im.shape
+        if roidb[i]['flipped']:
+            im = im[:, ::-1, :]
+        
+        scale_ind = random.randrange(len(config.SCALES))
+        target_size = config.SCALES[scale_ind][0]
+        max_size = config.SCALES[scale_ind][1]
+
+        croped_im = crop_image(im,config.CROP_NUM)
+
+        im, im_scale = resize(croped_im, target_size, max_size, stride=config.network.IMAGE_STRIDE)
+        im_tensor = transform(im, config.network.PIXEL_MEANS)
+        processed_ims.append(im_tensor)
+        im_info = [im_tensor.shape[2], im_tensor.shape[3], im_scale]
+
+        remap_boxes(roi_rec,config.CROP_NUM,ori_shape)
+        new_rec = roi_rec.copy()
+        new_rec['boxes'] = clip_boxes(np.round(roi_rec['boxes'].copy()* im_scale), im_info[:2])
+        new_rec['im_info'] = im_info
+        processed_roidb.append(new_rec)
+    return processed_ims, processed_roidb
 
 def get_segmentation_image(segdb, config):
     """

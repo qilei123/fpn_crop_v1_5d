@@ -55,7 +55,7 @@ def get_rpn_batch(roidb, cfg):
     :return: data, label
     """
     assert len(roidb) == 1, 'Single batch only'
-    imgs, roidb = get_image(roidb, cfg)
+    imgs, roidb = get_crop_image(roidb, cfg)
     im_array = imgs[0]
     im_info = np.array([roidb[0]['im_info']], dtype=np.float32)
 
