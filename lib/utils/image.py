@@ -257,8 +257,6 @@ def resize_crop(im, target_size, max_size, stride=0, interpolation = cv2.INTER_L
         padded_im = np.zeros((im_height, im_width, im_channel))
         padded_im[:im.shape[0], :im.shape[1], :] = im
         del im
-        if DEBUG:
-            print "padded_im.shape:"+str(padded_im.shape)
         return padded_im, im_scale
 
 def resize(im, target_size, max_size, stride=0, interpolation = cv2.INTER_LINEAR):
