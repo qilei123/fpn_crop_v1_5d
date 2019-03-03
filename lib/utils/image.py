@@ -166,18 +166,14 @@ def get_crop_image(roidb, config):
         ori_shape = im.shape
         if roidb[i]['flipped']:
             im = im[:, ::-1, :]
-        
         scale_ind = random.randrange(len(config.SCALES))
         target_size = config.SCALES[scale_ind][0]
         max_size = config.SCALES[scale_ind][1]
-
         croped_im = crop_image(im,config.CROP_NUM)
-
-        im, im_scale = resize(croped_im, target_size, max_size, stride=config.network.IMAGE_STRIDE)
+        im, im_scale = resize_crop(croped_im, target_size, max_size, stride=config.network.IMAGE_STRIDE)
         im_tensor = transform(im, config.network.PIXEL_MEANS)
         processed_ims.append(im_tensor)
         im_info = [im_tensor.shape[2], im_tensor.shape[3], im_scale]
-
         remap_boxes(roi_rec,config.CROP_NUM,ori_shape)
         new_rec = roi_rec.copy()
         new_rec['boxes'] = clip_boxes(np.round(roi_rec['boxes'].copy()* im_scale), im_info[:2])
@@ -221,6 +217,49 @@ def get_segmentation_image(segdb, config):
         processed_seg_cls_gt.append(seg_cls_gt_tensor)
 
     return processed_ims, processed_seg_cls_gt, processed_segdb
+
+def resize_crop(im, target_size, max_size, stride=0, interpolation = cv2.INTER_LINEAR):
+    """
+    only resize input image to target size and return scale
+    :param im: BGR image input by opencv
+    :param target_size: one dimensional size (the short side)
+    :param max_size: one dimensional max size (the long side)
+    :param stride: if given, pad the image to designated stride
+    :param interpolation: if given, using given interpolation method to resize image
+    :return:
+    """
+    im_shape = im.shape
+    im_size_min = np.min(im_shape[0:2])
+    im_size_max = np.max(im_shape[0:2])
+    im_scale = float(target_size) / float(im_size_min)
+    # prevent bigger axis from being more than max_size:
+    if np.round(im_scale * im_size_max) > max_size:
+        im_scale = float(max_size) / float(im_size_max)
+    channel = im.shape[2]
+
+    t_im = cv2.resize(im[:,:,0].astype(np.float32), None, None, fx=im_scale, fy=im_scale, interpolation=interpolation)
+
+    n_im = np.zeros((t_im.shape[0],t_im.shape[1],channel),dtype = int)
+
+    for i in range(channel/3):
+         
+        n_im[:,:,i*3:(i+1)*3] = cv2.resize(im[:,:,i*3:(i+1)*3].astype(np.float32), None, None, fx=im_scale, fy=im_scale, interpolation=interpolation)
+
+    im = n_im
+
+    if stride == 0:
+        return im, im_scale
+    else:
+        # pad to product of stride
+        im_height = int(np.ceil(im.shape[0] / float(stride)) * stride)
+        im_width = int(np.ceil(im.shape[1] / float(stride)) * stride)
+        im_channel = im.shape[2]
+        padded_im = np.zeros((im_height, im_width, im_channel))
+        padded_im[:im.shape[0], :im.shape[1], :] = im
+        del im
+        if DEBUG:
+            print "padded_im.shape:"+str(padded_im.shape)
+        return padded_im, im_scale
 
 def resize(im, target_size, max_size, stride=0, interpolation = cv2.INTER_LINEAR):
     """
