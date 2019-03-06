@@ -133,6 +133,9 @@ class PyramidProposalOperator(mx.operator.CustomOp):
 
         proposal_list = []
         score_list = []
+
+        crop_nums=9
+
         for s in self._feat_stride:
             stride = int(s)
             sub_anchors = generate_anchors(base_size=stride, scales=self._scales, ratios=self._ratios)
@@ -162,6 +165,9 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             K = shifts.shape[0]
             anchors = sub_anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
             anchors = anchors.reshape((K * A, 4))
+            temp_anchors = anchors.copy()
+            for cha in range(crop_nums):
+                anchors = np.vstack((anchors,temp_anchors))
 
             # Transpose and reshape predicted bbox transformations to get them
             # into the same order as the anchors:

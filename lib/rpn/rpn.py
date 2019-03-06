@@ -64,8 +64,8 @@ def get_rpn_batch(roidb, cfg):
         gt_inds = np.where(roidb[0]['gt_classes'] != 0)[0]
         gt_boxes = np.empty((roidb[0]['boxes'].shape[0], 6), dtype=np.float32)
         gt_boxes[:, 0:4] = roidb[0]['boxes'][gt_inds, :]
-        gt_boxes[:, 4] = roidb[0]['box_channels'][gt_inds] #add channel_index to the gt_boxes
-        gt_boxes[:, 5] = roidb[0]['gt_classes'][gt_inds]
+        gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
+        gt_boxes[:, 5] = roidb[0]['box_channels'][gt_inds] #add channel_index to the gt_boxes
     else:
         gt_boxes = np.empty((0, 6), dtype=np.float32) #
     #print "gt_boxes:"+str(gt_boxes.shape)
