@@ -347,10 +347,11 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
             for j in range(crop_nums):
                 temp_gt_boxes = np.zeros(gt_boxes.shape)
                 temp_gt_boxes[np.where(gt_boxes[5]==j),:]=gt_boxes[np.where(gt_boxes[5]==j),:]
-
                 overlaps = np.vstack((overlaps,
                         bbox_overlaps(fpn_anchors[j*total_anchors/crop_nums:(j+1)*total_anchors/crop_nums,:].astype(np.float),
                                         temp_gt_boxes.astype(np.float))))
+        print fpn_anchors.shape
+        print overlaps.shape
         argmax_overlaps = overlaps.argmax(axis=1)
         max_overlaps = overlaps[np.arange(len(fpn_anchors)), argmax_overlaps]
         gt_argmax_overlaps = overlaps.argmax(axis=0)
