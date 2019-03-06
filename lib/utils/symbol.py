@@ -36,6 +36,8 @@ class Symbol:
 
     def infer_shape(self, data_shape_dict):
         # infer shape
+        print "infer data_shape_dict:"
+        pprint.pprint(data_shape_dict)
         arg_shape, out_shape, aux_shape = self.sym.infer_shape(**data_shape_dict)
         self.arg_shape_dict = dict(zip(self.sym.list_arguments(), arg_shape))
         self.out_shape_dict = dict(zip(self.sym.list_outputs(), out_shape))
