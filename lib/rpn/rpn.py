@@ -317,7 +317,7 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         temp_all_anchors = all_anchors.copy()
         for channel in range(crop_nums):
             all_anchors = np.vstack((all_anchors,temp_all_anchors))
-
+        print all_anchors.shape
         # only keep anchors inside the image
         inds_inside = np.where((all_anchors[:, 0] >= -allowed_border) &
                                (all_anchors[:, 1] >= -allowed_border) &
