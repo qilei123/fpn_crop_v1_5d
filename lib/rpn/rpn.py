@@ -344,6 +344,7 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         overlaps = np.zeros((0,int(gt_boxes.shape[0])))
         for i in range(0, len(feat_strides)):
             feat_height, feat_width, A, total_anchors = fpn_args[i]
+            print fpn_args[i]
             for j in range(crop_nums):
                 temp_gt_boxes = np.zeros(gt_boxes.shape)
                 temp_gt_boxes[np.where(gt_boxes[5]==j),:]=gt_boxes[np.where(gt_boxes[5]==j),:]
