@@ -315,7 +315,7 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         total_anchors = int(K * A * crop_nums)
 
         temp_all_anchors = all_anchors.copy()
-        all_anchors=np.zeros((0,all_anchors[1]))
+        all_anchors=np.zeros((0,all_anchors.shape[1]))
         for channel in range(crop_nums):
             all_anchors = np.vstack((all_anchors,temp_all_anchors))
         print all_anchors.shape
