@@ -37,7 +37,7 @@ def get_rpn_testbatch(roidb, cfg):
     :return: data, label, im_info
     """
     # assert len(roidb) == 1, 'Single batch only'
-    imgs, roidb = get_image(roidb, cfg)
+    imgs, roidb = get_crop_image(roidb, cfg)
     im_array = imgs
     im_info = [np.array([roidb[i]['im_info']], dtype=np.float32) for i in range(len(roidb))]
 
@@ -59,14 +59,15 @@ def get_rpn_batch(roidb, cfg):
     im_array = imgs[0]
     im_info = np.array([roidb[0]['im_info']], dtype=np.float32)
 
-    # gt boxes: (x1, y1, x2, y2, cls)
+    # change gt boxes: (x1, y1, x2, y2, cls) to (x1,y1,x2,y2,channel,cls)
     if roidb[0]['gt_classes'].size > 0:
         gt_inds = np.where(roidb[0]['gt_classes'] != 0)[0]
         gt_boxes = np.empty((roidb[0]['boxes'].shape[0], 5), dtype=np.float32)
         gt_boxes[:, 0:4] = roidb[0]['boxes'][gt_inds, :]
-        gt_boxes[:, 4] = roidb[0]['gt_classes'][gt_inds]
+        gt_boxes[:, 4] = roidb[0]['box_channels'][gt_inds] #add channel_index to the gt_boxes
+        gt_boxes[:, 5] = roidb[0]['gt_classes'][gt_inds]
     else:
-        gt_boxes = np.empty((0, 5), dtype=np.float32)
+        gt_boxes = np.empty((0, 6), dtype=np.float32) #
     #print "gt_boxes:"+str(gt_boxes.shape)
     data = {'data': im_array,
             'im_info': im_info}
@@ -312,7 +313,7 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
                                (all_anchors[:, 1] >= -allowed_border) &
                                (all_anchors[:, 2] < im_info[1] + allowed_border) &
                                (all_anchors[:, 3] < im_info[0] + allowed_border))[0]
-
+        
         # keep only inside anchors
         anchors = all_anchors[inds_inside, :]
 
