@@ -283,6 +283,9 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
     fpn_anchors = np.zeros([0, 4])
     fpn_labels = np.zeros(0)
     fpn_inds_inside = []
+
+    crop_nums = cfg.CROP_NUM*cfg.CROP_NUM
+
     for feat_id in range(len(feat_strides)):
         # len(scales.shape) == 1 just for backward compatibility, will remove in the future
         if len(scales.shape) == 1:
@@ -304,9 +307,16 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         # reshape to (K*A, 4) shifted anchors
         A = num_anchors
         K = shifts.shape[0]
+
+        print K,feat_width,feat_height,feat_strides[feat_id]
+
         all_anchors = base_anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
         all_anchors = all_anchors.reshape((K * A, 4))
-        total_anchors = int(K * A)
+        total_anchors = int(K * A * crop_nums)
+
+        temp_all_anchors = all_anchors.copy()
+        for channel in range(crop_nums):
+            all_anchors = np.vstack((all_anchors,temp_all_anchors))
 
         # only keep anchors inside the image
         inds_inside = np.where((all_anchors[:, 0] >= -allowed_border) &
