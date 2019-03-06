@@ -326,7 +326,7 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         
         # keep only inside anchors
         anchors = all_anchors[inds_inside, :]
-
+        print anchors.shape
         # label: 1 is positive, 0 is negative, -1 is dont care
         # for sigmoid classifier, ignore the 'background' class
         labels = np.empty((len(inds_inside),), dtype=np.float32)
