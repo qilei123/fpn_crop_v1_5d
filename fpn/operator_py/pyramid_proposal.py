@@ -244,7 +244,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             #print temp_scores.shape
             det = np.hstack((temp_ch_proposals, temp_scores)).astype(np.float32)
             #print det.shape
-            keep = np.zeros(1)
+            #keep = np.zeros(1)
             if det.shape[0]>0:
                 keep = nms(det)
                 if avg_post_nms_topN > 0:
