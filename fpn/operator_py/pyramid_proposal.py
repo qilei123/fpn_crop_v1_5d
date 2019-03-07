@@ -212,7 +212,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             score_list.append(scores)
             channel_record_list.append(channel_record)
 
-        channel_records
+        channel_records = np.vstack(channel_record_list)
         proposals = np.vstack(proposal_list)
         scores = np.vstack(score_list)
 
@@ -223,11 +223,17 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             order = order[:pre_nms_topN]
         proposals = proposals[order, :]
         scores = scores[order]
-
+        channel_records = channel_records[order]
+        print "channel_records:"
+        print channel_records
         # 6. apply nms (e.g. threshold = 0.7)
         # 7. take after_nms_topN (e.g. 300)
         # 8. return the top proposals (-> RoIs top)
+        # 9. nms on different channel
+        #for i in range(crop_nums):
+        #    chanel_index = np.where()
         det = np.hstack((proposals, scores)).astype(np.float32)
+
         keep = nms(det)
         if post_nms_topN > 0:
             keep = keep[:post_nms_topN]
