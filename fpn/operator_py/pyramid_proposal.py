@@ -234,6 +234,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
         # 8. return the top proposals (-> RoIs top)
         # 9. nms on different channel
         keeps = np.zeros(0)
+        avg_post_nms_topN = int(post_nms_topN/crop_nums)
         for i in range(crop_nums):
             channel_index = np.where(channel_records==i)[0]
             temp_ch_proposals = proposals[channel_index,:]
@@ -243,11 +244,11 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             #print temp_scores.shape
             det = np.hstack((temp_ch_proposals, temp_scores)).astype(np.float32)
             keep = nms(det)
-            if post_nms_topN > 0:
-                keep = keep[:post_nms_topN]
+            if avg_post_nms_topN > 0:
+                keep = keep[:avg_post_nms_topN]
             # pad to ensure output size remains unchanged
-            if len(keep) < post_nms_topN:
-                pad = npr.choice(keep, size=post_nms_topN - len(keep))
+            if len(keep) < avg_post_nms_topN:
+                pad = npr.choice(keep, size=avg_post_nms_topN - len(keep))
                 keep = np.hstack((keep, pad))
             keeps = np.hstack((keeps,channel_index[keep])).astype(np.int)
 
