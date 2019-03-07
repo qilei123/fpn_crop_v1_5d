@@ -228,19 +228,19 @@ class PyramidProposalOperator(mx.operator.CustomOp):
         channel_records = channel_records[order]
         #print "channel_records:"
         #print channel_records
-        print channel_records.shape
+        #print channel_records.shape
         # 6. apply nms (e.g. threshold = 0.7)
         # 7. take after_nms_topN (e.g. 300)
         # 8. return the top proposals (-> RoIs top)
         # 9. nms on different channel
         keeps = np.zeros(0)
         for i in range(crop_nums):
-            channel_index = np.where(channel_records==i)
-            temp_ch_proposals = proposals[channel_index[0],:]
-            print proposals.shape
-            print temp_ch_proposals.shape
-            temp_scores = scores[channel_index[0]]
-            print temp_scores.shape
+            channel_index = np.where(channel_records==i)[0]
+            temp_ch_proposals = proposals[channel_index,:]
+            #print proposals.shape
+            #print temp_ch_proposals.shape
+            temp_scores = scores[channel_index
+            #print temp_scores.shape
             det = np.hstack((temp_ch_proposals, temp_scores)).astype(np.float32)
             keep = nms(det)
             if post_nms_topN > 0:
