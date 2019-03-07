@@ -198,6 +198,8 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             # (NOTE: convert min_size to input image scale stored in im_info[2])
             print "keep.shape"
             print keep.shape
+            print "proposals.shape"
+            print proposals.shape
             keep = self._filter_boxes(proposals, min_size * im_info[2])
             proposals = proposals[keep, :]
             print "scores.shape"
