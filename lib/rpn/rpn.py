@@ -409,7 +409,7 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
                 temp_argmax_overlaps = argmax_overlaps[j*total_anchors/crop_nums:(j+1)*total_anchors/crop_nums]
                 temp_fpn_labels = fpn_labels[j*total_anchors/crop_nums:(j+1)*total_anchors/crop_nums]
                 temp_fpn_bbox_targets = np.zeros((total_anchors/crop_nums, 4), dtype=np.float32)
-                temp_fpn_bbox_targets[fpn_labels >= 1, :] = bbox_transform(temp_fpn_anchors[temp_fpn_labels >= 1, :], temp_gt_boxes[temp_argmax_overlaps[temp_fpn_labels >= 1], :4])
+                temp_fpn_bbox_targets[temp_fpn_labels >= 1, :] = bbox_transform(temp_fpn_anchors[temp_fpn_labels >= 1, :], temp_gt_boxes[temp_argmax_overlaps[temp_fpn_labels >= 1], :4])
                 fpn_bbox_targets = np.vstack((fpn_bbox_targets,temp_fpn_bbox_targets))
         # fpn_bbox_targets[:] = bbox_transform(fpn_anchors, gt_boxes[argmax_overlaps, :4])
     # fpn_bbox_targets = (fpn_bbox_targets - np.array(cfg.TRAIN.BBOX_MEANS)) / np.array(cfg.TRAIN.BBOX_STDS)
