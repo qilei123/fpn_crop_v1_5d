@@ -163,9 +163,10 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             # reshape to (K*A, 4) shifted anchors
             A = self._num_anchors
             K = shifts.shape[0]
-            anchors = sub_anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
-            anchors = anchors.reshape((K * A, 4))
-            temp_anchors = anchors.copy()
+            temp_anchors = sub_anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
+            temp_anchors = temp_anchors.reshape((K * A, 4))
+            anchors = np.zeros((0,4))
+            
             for channel in range(crop_nums):
                 anchors = np.vstack((anchors,temp_anchors))
 
