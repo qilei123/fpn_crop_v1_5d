@@ -133,14 +133,14 @@ class PyramidProposalOperator(mx.operator.CustomOp):
 
         proposal_list = []
         score_list = []
-
+        channel_record_list = []
         crop_nums=9
 
         for s in self._feat_stride:
             stride = int(s)
             sub_anchors = generate_anchors(base_size=stride, scales=self._scales, ratios=self._ratios)
             #print "cls_prob_dict['stride' + str(s)].shape:"+str(cls_prob_dict['stride' + str(s)].shape)
-            print cls_prob_dict['stride' + str(s)].asnumpy().shape
+            #print cls_prob_dict['stride' + str(s)].asnumpy().shape
             scores = cls_prob_dict['stride' + str(s)].asnumpy()[:, self._num_anchors:, :, :]
             #print "scores.shape:"+str(scores.shape)
             bbox_deltas = bbox_pred_dict['stride' + str(s)].asnumpy()
@@ -167,10 +167,10 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             temp_anchors = sub_anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
             temp_anchors = temp_anchors.reshape((K * A, 4))
             anchors = np.zeros((0,4))
-            
+            channel_records = np.zeros(0)
             for channel in range(crop_nums):
                 anchors = np.vstack((anchors,temp_anchors))
-
+                channel_records = np.vstack((channel_records,np.ones(temp_anchors.shape[0]*channel))
             # Transpose and reshape predicted bbox transformations to get them
             # into the same order as the anchors:
             #
@@ -198,17 +198,21 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             # 3. remove predicted boxes with either height or width < threshold
             # (NOTE: convert min_size to input image scale stored in im_info[2])
 
-            print "proposals.shape"
-            print proposals.shape
+            #print "proposals.shape"
+            #print proposals.shape
             keep = self._filter_boxes(proposals, min_size * im_info[2])
             proposals = proposals[keep, :]
-            print "scores.shape"
-            print scores.shape
+            #print "scores.shape"
+            #print scores.shape
             scores = scores[keep]
 
+            channel_records = channel_records[keep] 
+            
             proposal_list.append(proposals)
             score_list.append(scores)
+            channel_record_list.append(channel_record)
 
+        channel_records
         proposals = np.vstack(proposal_list)
         scores = np.vstack(score_list)
 
