@@ -226,26 +226,33 @@ class PyramidProposalOperator(mx.operator.CustomOp):
         proposals = proposals[order, :]
         scores = scores[order]
         channel_records = channel_records[order]
-        print "channel_records:"
-        print channel_records
+        #print "channel_records:"
+        #print channel_records
+        print channel_records.shape
         # 6. apply nms (e.g. threshold = 0.7)
         # 7. take after_nms_topN (e.g. 300)
         # 8. return the top proposals (-> RoIs top)
         # 9. nms on different channel
-        #for i in range(crop_nums):
-        #    chanel_index = np.where()
-        det = np.hstack((proposals, scores)).astype(np.float32)
+        keeps = np.zeros(0)
+        for i in range(crop_nums):
+            channel_index = np.where(channel_records==i)
+            temp_proposals = proposals[channel_index,:]
+            temp_scores = scores[channel_index]
+            det = np.hstack((temp_proposals, temp_scores)).astype(np.float32)
+            keep = nms(det)
+            if post_nms_topN > 0:
+                keep = keep[:post_nms_topN]
+            # pad to ensure output size remains unchanged
+            if len(keep) < post_nms_topN:
+                pad = npr.choice(keep, size=post_nms_topN - len(keep))
+                keep = np.hstack((keep, pad))
+            keeps = np.hstack((keeps,channel_index(keep)))
 
-        keep = nms(det)
-        if post_nms_topN > 0:
-            keep = keep[:post_nms_topN]
-        # pad to ensure output size remains unchanged
-        if len(keep) < post_nms_topN:
-            pad = npr.choice(keep, size=post_nms_topN - len(keep))
-            keep = np.hstack((keep, pad))
-        proposals = proposals[keep, :]
-        scores = scores[keep]
 
+        proposals = proposals[keeps, :]
+        scores = scores[keeps]
+        channel_records = channel_records[keeps]
+        print channel_records.shape
         # Output rois array
         # Our RPN implementation only supports a single input image, so all
         # batch inds are 0
