@@ -177,8 +177,6 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             # transpose to (1, H, W, 4 * A)
             # reshape to (1 * H * W * A, 4) where rows are ordered by (h, w, a)
             # in slowest to fastest order
-            print "bbox_deltas.shape"
-            print bbox_deltas.shape
             bbox_deltas = self._clip_pad(bbox_deltas, (height, width))
             bbox_deltas = bbox_deltas.transpose((0, 2, 3, 1)).reshape((-1, 4))
 
@@ -189,11 +187,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             # reshape to (1 * H * W * A, 1) where rows are ordered by (h, w, a)
             scores = self._clip_pad(scores, (height, width))
             scores = scores.transpose((0, 2, 3, 1)).reshape((-1, 1))
-
-            print "bbox_deltas.shape"
-            print bbox_deltas.shape
-            print "anchors.shape"
-            print anchors.shape            
+          
             # Convert anchors into proposals via bbox transformations
             proposals = bbox_pred(anchors, bbox_deltas)
 
@@ -204,6 +198,8 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             # (NOTE: convert min_size to input image scale stored in im_info[2])
             keep = self._filter_boxes(proposals, min_size * im_info[2])
             proposals = proposals[keep, :]
+            print "scores.shape"
+            print scores.shape
             scores = scores[keep]
 
             proposal_list.append(proposals)
