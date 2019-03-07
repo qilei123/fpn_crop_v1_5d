@@ -249,8 +249,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             if len(keep) < post_nms_topN:
                 pad = npr.choice(keep, size=post_nms_topN - len(keep))
                 keep = np.hstack((keep, pad))
-            keeps = np.hstack((keeps,channel_index[keep]))
-
+            keeps = np.hstack((keeps,channel_index[keep])).astype(np.int)
 
         proposals = proposals[keeps, :]
         scores = scores[keeps]
