@@ -66,7 +66,7 @@ class ProposalTargetOperator(mx.operator.CustomOp):
         # Include ground-truth boxes in the set of candidate rois
         zeros = np.zeros((gt_boxes.shape[0], 1), dtype=gt_boxes.dtype)
         
-        print 'zeros.shape:'+str(zeros.shape)
+        #print 'zeros.shape:'+str(zeros.shape)
         print 'gt_boxes.shape:'+str(gt_boxes.shape)
         print 'all_rois.shape:'+str(all_rois.shape)        
         
