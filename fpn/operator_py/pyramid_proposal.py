@@ -237,6 +237,8 @@ class PyramidProposalOperator(mx.operator.CustomOp):
         for i in range(crop_nums):
             channel_index = np.where(channel_records==i)
             temp_proposals = proposals[channel_index,:]
+            print proposals.shape
+            print temp_proposals.shape
             print temp_proposals.shape
             temp_scores = scores[channel_index]
             print temp_scores.shape
