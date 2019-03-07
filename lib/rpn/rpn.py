@@ -318,7 +318,6 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         all_anchors=np.zeros((0,all_anchors.shape[1]))
         for channel in range(crop_nums):
             all_anchors = np.vstack((all_anchors,temp_all_anchors))
-        print all_anchors.shape
         # only keep anchors inside the image
         inds_inside = np.where((all_anchors[:, 0] >= -allowed_border) &
                                (all_anchors[:, 1] >= -allowed_border) &
@@ -327,7 +326,7 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         
         # keep only inside anchors
         anchors = all_anchors[inds_inside, :]
-        print anchors.shape
+
         # label: 1 is positive, 0 is negative, -1 is dont care
         # for sigmoid classifier, ignore the 'background' class
         labels = np.empty((len(inds_inside),), dtype=np.float32)
@@ -345,15 +344,13 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         overlaps = np.zeros((0,int(gt_boxes.shape[0])))
         for i in range(0, len(feat_strides)):
             feat_height, feat_width, A, total_anchors = fpn_args[i]
-            print fpn_args[i]
+
             for j in range(crop_nums):
                 temp_gt_boxes = np.zeros(gt_boxes.shape)
                 temp_gt_boxes[np.where(gt_boxes[5]==j),:]=gt_boxes[np.where(gt_boxes[5]==j),:]
                 overlaps = np.vstack((overlaps,
                         bbox_overlaps(fpn_anchors[j*total_anchors/crop_nums:(j+1)*total_anchors/crop_nums,:].astype(np.float),
                                         temp_gt_boxes.astype(np.float))))
-        print fpn_anchors.shape
-        print overlaps.shape
         argmax_overlaps = overlaps.argmax(axis=1)
         max_overlaps = overlaps[np.arange(len(fpn_anchors)), argmax_overlaps]
         gt_argmax_overlaps = overlaps.argmax(axis=0)
@@ -401,9 +398,19 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
                 disable_inds = bg_inds[:(len(bg_inds) - num_bg)]
             fpn_labels[disable_inds] = -1
 
-    fpn_bbox_targets = np.zeros((len(fpn_anchors), 4), dtype=np.float32)
+    fpn_bbox_targets = np.zeros((0, 4), dtype=np.float32)
     if gt_boxes.size > 0:
-        fpn_bbox_targets[fpn_labels >= 1, :] = bbox_transform(fpn_anchors[fpn_labels >= 1, :], gt_boxes[argmax_overlaps[fpn_labels >= 1], :4])
+        for i in range(0, len(feat_strides)):
+            feat_height, feat_width, A, total_anchors = fpn_args[i]
+            for j in range(crop_nums):
+                temp_fpn_anchors = fpn_anchors[j*total_anchors/crop_nums:(j+1)*total_anchors/crop_nums,:]
+                temp_gt_boxes = np.zeros(gt_boxes.shape)
+                temp_gt_boxes[np.where(gt_boxes[5]==j),:]=gt_boxes[np.where(gt_boxes[5]==j),:]
+                temp_argmax_overlaps = argmax_overlaps[j*total_anchors/crop_nums:(j+1)*total_anchors/crop_nums]
+                temp_fpn_labels = fpn_labels[j*total_anchors/crop_nums:(j+1)*total_anchors/crop_nums]
+                temp_fpn_bbox_targets = np.zeros((total_anchors/crop_nums, 4), dtype=np.float32)
+                temp_fpn_bbox_targets[fpn_labels >= 1, :] = bbox_transform(temp_fpn_anchors[temp_fpn_labels >= 1, :], temp_gt_boxes[temp_argmax_overlaps[temp_fpn_labels >= 1], :4])
+                fpn_bbox_targets = np.vstack((fpn_bbox_targets,temp_fpn_bbox_targets))
         # fpn_bbox_targets[:] = bbox_transform(fpn_anchors, gt_boxes[argmax_overlaps, :4])
     # fpn_bbox_targets = (fpn_bbox_targets - np.array(cfg.TRAIN.BBOX_MEANS)) / np.array(cfg.TRAIN.BBOX_STDS)
     fpn_bbox_weights = np.zeros((len(fpn_anchors), 4), dtype=np.float32)
