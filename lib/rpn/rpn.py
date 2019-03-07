@@ -337,7 +337,8 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
         fpn_labels = np.hstack((fpn_labels, labels))
         fpn_inds_inside.append(inds_inside)
         fpn_args.append([feat_height, feat_width, A, total_anchors])
-
+    print "gt_boxes"
+    print gt_boxes
     if gt_boxes.size > 0:
         # overlap between the anchors and the gt boxes
         # overlaps (ex, gt)
