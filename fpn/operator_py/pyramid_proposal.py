@@ -244,16 +244,16 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             #print temp_scores.shape
             det = np.hstack((temp_ch_proposals, temp_scores)).astype(np.float32)
             #print det.shape
-            keep = np.zeros(0)
+            keep = np.zeros(1)
             if det.shape[0]>0:
                 keep = nms(det)
-            if avg_post_nms_topN > 0:
-                keep = keep[:avg_post_nms_topN]
-            # pad to ensure output size remains unchanged
-            if len(keep) < avg_post_nms_topN:
-                pad = npr.choice(keep, size=avg_post_nms_topN - len(keep))
-                keep = np.hstack((keep, pad))
-            keeps = np.hstack((keeps,channel_index[keep])).astype(np.int)
+                if avg_post_nms_topN > 0:
+                    keep = keep[:avg_post_nms_topN]
+                # pad to ensure output size remains unchanged
+                if len(keep) < avg_post_nms_topN:
+                    pad = npr.choice(keep, size=avg_post_nms_topN - len(keep))
+                    keep = np.hstack((keep, pad))
+                keeps = np.hstack((keeps,channel_index[keep])).astype(np.int)
 
         proposals = proposals[keeps, :]
         scores = scores[keeps]
