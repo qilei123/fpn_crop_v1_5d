@@ -236,10 +236,10 @@ class PyramidProposalOperator(mx.operator.CustomOp):
         keeps = np.zeros(0)
         for i in range(crop_nums):
             channel_index = np.where(channel_records==i)
-            temp_ch_proposals = proposals[channel_index,:]
+            temp_ch_proposals = proposals[channel_index[0],:]
             print proposals.shape
             print temp_ch_proposals.shape
-            temp_scores = scores[channel_index]
+            temp_scores = scores[channel_index[0]]
             print temp_scores.shape
             det = np.hstack((temp_ch_proposals, temp_scores)).astype(np.float32)
             keep = nms(det)
