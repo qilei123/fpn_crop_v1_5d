@@ -167,10 +167,11 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             temp_anchors = sub_anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
             temp_anchors = temp_anchors.reshape((K * A, 4))
             anchors = np.zeros((0,4))
-            channel_records = np.zeros(0)
+            channel_records = np.zeros((0,1))
             for channel in range(crop_nums):
                 anchors = np.vstack((anchors,temp_anchors))
                 channels = np.ones(K*A)*channel
+                channels.reshape((-1,1))
                 channel_records = np.vstack((channel_records,channels))
             # Transpose and reshape predicted bbox transformations to get them
             # into the same order as the anchors:
