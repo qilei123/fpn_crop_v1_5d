@@ -239,7 +239,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             temp_ch_proposals = proposals[channel_index,:]
             #print proposals.shape
             #print temp_ch_proposals.shape
-            temp_scores = scores[channel_index
+            temp_scores = scores[channel_index]
             #print temp_scores.shape
             det = np.hstack((temp_ch_proposals, temp_scores)).astype(np.float32)
             keep = nms(det)
