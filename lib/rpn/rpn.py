@@ -414,9 +414,9 @@ def assign_pyramid_anchor(feat_shapes, gt_boxes, im_info, cfg, feat_strides=(4, 
     # fpn_bbox_targets = (fpn_bbox_targets - np.array(cfg.TRAIN.BBOX_MEANS)) / np.array(cfg.TRAIN.BBOX_STDS)
     else:
         fpn_bbox_targets = np.zeros((len(fpn_anchors), 4), dtype=np.float32)
-    #print "fpn_bbox_targets.shape:"
-    #print fpn_bbox_targets.shape
-    #print fpn_anchors.shape
+    print "fpn_bbox_targets.shape:"
+    print fpn_bbox_targets.shape
+    print fpn_anchors.shape
     fpn_bbox_weights = np.zeros((len(fpn_anchors), 4), dtype=np.float32)
 
     fpn_bbox_weights[fpn_labels >= 1, :] = np.array(cfg.TRAIN.RPN_BBOX_WEIGHTS)
