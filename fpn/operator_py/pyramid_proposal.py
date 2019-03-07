@@ -255,7 +255,8 @@ class PyramidProposalOperator(mx.operator.CustomOp):
         proposals = proposals[keeps, :]
         scores = scores[keeps]
         channel_records = channel_records[keeps]
-        print channel_records.shape
+        #proposals.hstack((proposals,channel_records))
+        #print channel_records.shape
         # Output rois array
         # Our RPN implementation only supports a single input image, so all
         # batch inds are 0

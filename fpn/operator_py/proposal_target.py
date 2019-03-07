@@ -70,7 +70,7 @@ class ProposalTargetOperator(mx.operator.CustomOp):
         print 'gt_boxes.shape:'+str(gt_boxes.shape)
         print 'all_rois.shape:'+str(all_rois.shape)        
         '''
-        all_rois = np.vstack((all_rois, np.hstack((zeros, gt_boxes[:, :-1]))))
+        all_rois = np.vstack((all_rois, np.hstack((zeros, gt_boxes[:, :-2]))))
         # Sanity check: single batch only
         assert np.all(all_rois[:, 0] == 0), 'Only single item batches are supported'
 
