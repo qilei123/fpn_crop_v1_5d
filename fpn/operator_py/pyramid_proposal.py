@@ -212,7 +212,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             
             proposal_list.append(proposals)
             score_list.append(scores)
-            channel_record_list.append(channel_record)
+            channel_record_list.append(channel_records)
 
         channel_records = np.vstack(channel_record_list)
         proposals = np.vstack(proposal_list)
