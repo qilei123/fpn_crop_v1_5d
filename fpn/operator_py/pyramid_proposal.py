@@ -189,6 +189,10 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             scores = self._clip_pad(scores, (height, width))
             scores = scores.transpose((0, 2, 3, 1)).reshape((-1, 1))
 
+            print "bbox_deltas.shape"
+            print bbox_deltas.shape
+            print "anchors.shape"
+            print anchors.shape            
             # Convert anchors into proposals via bbox transformations
             proposals = bbox_pred(anchors, bbox_deltas)
 
