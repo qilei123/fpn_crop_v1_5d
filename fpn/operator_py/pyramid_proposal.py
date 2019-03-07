@@ -171,7 +171,7 @@ class PyramidProposalOperator(mx.operator.CustomOp):
             for channel in range(crop_nums):
                 anchors = np.vstack((anchors,temp_anchors))
                 channels = np.ones(K*A)*channel
-                channels.reshape((-1,1))
+                channels = channels.reshape((-1,1))
                 channel_records = np.vstack((channel_records,channels))
             # Transpose and reshape predicted bbox transformations to get them
             # into the same order as the anchors:
